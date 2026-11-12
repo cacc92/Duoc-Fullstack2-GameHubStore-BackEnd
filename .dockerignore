@@ -1,0 +1,8 @@
+**/target
+.idea
+.vscode
+.git
+*.iml
+docker-compose.yml
+README.md
+CONTRATOS.md

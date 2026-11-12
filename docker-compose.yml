@@ -1,0 +1,173 @@
+# Ecosistema completo de GameHub Store en contenedores:
+#   docker compose up --build
+# Gateway: http://localhost:8080 · Swagger: http://localhost:8080/swagger-ui.html · Eureka: http://localhost:8761
+# Si el puerto 8080 está ocupado en tu equipo, cambia "8080:8080" por "8079:8080" y apunta el frontend a 8079.
+
+x-servicio: &servicio
+  restart: unless-stopped
+  depends_on:
+    eureka-server:
+      condition: service_healthy
+  healthcheck:
+    # Cada servicio responde en su propio puerto (variable PORT del contenedor)
+    test: ["CMD", "sh", "-c", "curl -fs http://localhost:$$PORT/actuator/health | grep -q UP"]
+    interval: 10s
+    timeout: 3s
+    retries: 30
+    start_period: 20s
+
+x-entorno: &entorno
+  EUREKA_URL: http://eureka-server:8761/eureka
+  JWT_SECRETO: ${JWT_SECRETO:-secreto-de-desarrollo-gamehub-store-solo-local-2026}
+  CLAVE_INTERNA: ${CLAVE_INTERNA:-clave-interna-de-desarrollo-gamehub}
+
+services:
+  eureka-server:
+    build:
+      context: .
+      args:
+        MODULO: eureka-server
+    environment:
+      EUREKA_HOSTNAME: eureka-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fs http://localhost:8761/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  auth-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: auth-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: auth-service
+      PORT: 8081
+
+  user-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: user-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: user-service
+      PORT: 8082
+
+  category-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: category-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: category-service
+      PORT: 8083
+
+  product-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: product-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: product-service
+      PORT: 8084
+
+  inventory-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: inventory-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: inventory-service
+      PORT: 8085
+
+  promotion-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: promotion-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: promotion-service
+      PORT: 8086
+
+  order-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: order-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: order-service
+      PORT: 8087
+
+  payment-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: payment-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: payment-service
+      PORT: 8088
+
+  shipping-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: shipping-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: shipping-service
+      PORT: 8089
+
+  review-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: review-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: review-service
+      PORT: 8090
+
+  warranty-service:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: warranty-service
+    environment:
+      <<: *entorno
+      EUREKA_HOSTNAME: warranty-service
+      PORT: 8091
+
+  api-gateway:
+    <<: *servicio
+    build:
+      context: .
+      args:
+        MODULO: api-gateway
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_HOSTNAME: api-gateway
+      PORT: 8080
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:5173}
+    ports:
+      - "8080:8080"

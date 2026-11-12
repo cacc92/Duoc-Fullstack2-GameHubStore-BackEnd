@@ -1,0 +1,46 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: user-service
+  # Base propia del servicio: H2 en memoria en local (se llena con DatosIniciales en cada arranque)
+  datasource:
+    url: jdbc:h2:mem:usuarios;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registry-fetch-interval-seconds: 5
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+app:
+  jwt:
+    # El mismo secreto en los 11 servicios: auth-service firma y los demás validan
+    secreto: ${JWT_SECRETO:secreto-de-desarrollo-gamehub-store-solo-local-2026}
+  clave-interna: ${CLAVE_INTERNA:clave-interna-de-desarrollo-gamehub}
+  datos-iniciales: ${DATOS_INICIALES:true}
+  docs:
+    descripcion: Perfiles de usuario con los datos de contacto y despacho. Cada perfil tiene el id de su cuenta en auth-service.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

@@ -1,0 +1,117 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # CORS en un solo lugar: el navegador solo habla con el Gateway
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${CORS_ORIGENES:http://localhost:5173}
+                allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+                allowed-headers: Authorization,Content-Type
+                exposed-headers: X-Request-Id
+                max-age: 3600
+          # lb://nombre-del-servicio: el Gateway busca en Eureka dónde está y reparte entre sus instancias.
+          # Las rutas /internal/** de los servicios no aparecen aquí: desde afuera no se pueden llamar.
+          routes:
+            # Va primero porque /api/productos/{id}/resenas también calza con la ruta de product-service
+            - id: review-service
+              uri: lb://review-service
+              order: -1
+              predicates:
+                - Path=/api/productos/*/resenas,/api/resenas/**,/api/admin/resenas/**
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/auth/**,/api/admin/usuarios/**
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/usuarios/**
+            - id: category-service
+              uri: lb://category-service
+              predicates:
+                - Path=/api/categorias/**,/api/admin/categorias/**
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/api/productos/**,/api/admin/productos/**
+            - id: inventory-service
+              uri: lb://inventory-service
+              predicates:
+                - Path=/api/inventario/**,/api/operador/inventario/**
+            - id: promotion-service
+              uri: lb://promotion-service
+              predicates:
+                - Path=/api/promociones/**,/api/admin/promociones/**
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/carrito/**,/api/ordenes/**,/api/operador/ordenes/**,/api/operador/resumen
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/pagos/**,/api/operador/pagos/**
+            - id: shipping-service
+              uri: lb://shipping-service
+              predicates:
+                - Path=/api/despachos/**,/api/operador/despachos/**
+            - id: warranty-service
+              uri: lb://warranty-service
+              predicates:
+                - Path=/api/garantias/**,/api/operador/garantias/**
+          # Las rutas de la documentación (/docs/<servicio>/v3/api-docs) se arman en DocumentacionConfig.java
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registry-fetch-interval-seconds: 5
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+# Swagger UI con la documentación de los 11 servicios: http://localhost:8080/swagger-ui.html
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    urls-primary-name: product-service
+    urls:
+      - name: auth-service
+        url: /docs/auth-service/v3/api-docs
+      - name: user-service
+        url: /docs/user-service/v3/api-docs
+      - name: category-service
+        url: /docs/category-service/v3/api-docs
+      - name: product-service
+        url: /docs/product-service/v3/api-docs
+      - name: inventory-service
+        url: /docs/inventory-service/v3/api-docs
+      - name: promotion-service
+        url: /docs/promotion-service/v3/api-docs
+      - name: order-service
+        url: /docs/order-service/v3/api-docs
+      - name: payment-service
+        url: /docs/payment-service/v3/api-docs
+      - name: shipping-service
+        url: /docs/shipping-service/v3/api-docs
+      - name: review-service
+        url: /docs/review-service/v3/api-docs
+      - name: warranty-service
+        url: /docs/warranty-service/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

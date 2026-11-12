@@ -1,0 +1,42 @@
+# Perfil de producción (SPRING_PROFILES_ACTIVE=prod), por ejemplo en Render.com.
+# En la nube no se usa Eureka: cada servicio tiene una URL pública fija y el Gateway la toma de una
+# variable de entorno. lb://product-service sigue funcionando gracias al "simple discovery" de Spring Cloud.
+eureka:
+  client:
+    enabled: false
+
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            auth-service:
+              - uri: ${AUTH_SERVICE_URL}
+            user-service:
+              - uri: ${USER_SERVICE_URL}
+            category-service:
+              - uri: ${CATEGORY_SERVICE_URL}
+            product-service:
+              - uri: ${PRODUCT_SERVICE_URL}
+            inventory-service:
+              - uri: ${INVENTORY_SERVICE_URL}
+            promotion-service:
+              - uri: ${PROMOTION_SERVICE_URL}
+            order-service:
+              - uri: ${ORDER_SERVICE_URL}
+            payment-service:
+              - uri: ${PAYMENT_SERVICE_URL}
+            shipping-service:
+              - uri: ${SHIPPING_SERVICE_URL}
+            review-service:
+              - uri: ${REVIEW_SERVICE_URL}
+            warranty-service:
+              - uri: ${WARRANTY_SERVICE_URL}
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${CORS_ORIGENES}

@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USUARIO}
+    password: ${DB_CLAVE}
+    hikari:
+      maximum-pool-size: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: ordenes
+        hbm2ddl:
+          create_namespaces: true
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            product-service:
+              - uri: ${PRODUCT_SERVICE_URL}
+            inventory-service:
+              - uri: ${INVENTORY_SERVICE_URL}
+            promotion-service:
+              - uri: ${PROMOTION_SERVICE_URL}
+            payment-service:
+              - uri: ${PAYMENT_SERVICE_URL}
+            shipping-service:
+              - uri: ${SHIPPING_SERVICE_URL}
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  jwt:
+    secreto: ${JWT_SECRETO}
+  clave-interna: ${CLAVE_INTERNA}

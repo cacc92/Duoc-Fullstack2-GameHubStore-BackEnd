@@ -1,0 +1,29 @@
+# Perfil de producción (SPRING_PROFILES_ACTIVE=prod). Sin valores por defecto: si falta una variable,
+# el servicio no arranca y el log dice cuál.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USUARIO}
+    password: ${DB_CLAVE}
+    hikari:
+      # Son 11 servicios contra la misma base de Supabase: pocas conexiones por servicio
+      maximum-pool-size: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        # Cada servicio usa su propio esquema dentro de la base
+        default_schema: inventario
+        hbm2ddl:
+          create_namespaces: true
+  # inventory-service no llama a otros servicios: no necesita sus URL (otros lo llaman a él)
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  jwt:
+    secreto: ${JWT_SECRETO}
+  clave-interna: ${CLAVE_INTERNA}
